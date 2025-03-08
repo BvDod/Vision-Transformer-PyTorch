@@ -31,6 +31,8 @@ def train_VIT(settings):
     model_settings = settings["model_settings"]
     model_settings["num_channels"] = channels
     model_settings["input_shape"] = input_shape
+    model_settings["device"] = device
+
     model = VIT(model_settings).to(device)
     if settings["print_debug"]:
         print(summary(VIT(), input_size=(32, 1, 28,28)))

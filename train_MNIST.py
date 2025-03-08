@@ -12,7 +12,9 @@ if __name__ == "__main__":
         "early_stopping_epochs": 5,
 
         "model_settings" : {
-
+            "patch_size": 4,
+            "embedding_size": 64,
+            "attention_heads": 4
         }
     }
     train.train_VIT(settings)
