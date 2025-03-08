@@ -27,8 +27,8 @@ class PatchEmbedding(nn.Module):
         x = self.linear1(x)         # Create embeddings from patches
         
         # Add extra empty embedding dim, so we can sum class dim to this later on
-        zeros = torch.zeros(x.shape[0], self.embedding_size, device=x.device).unsqueeze(1)
-        x = torch.cat([x,zeros], dim=1)
+        zeros = torch.zeros(x.shape[0], self.embedding_size, device=x.device, requires_grad=False).unsqueeze(1)
+        x = torch.cat([zeros, x], dim=1)
         return x
 
 
@@ -50,7 +50,7 @@ class PositionalEmbedding(nn.Module):
 
 
 class TransformerBlock(nn.Module):
-    def __init__(self, model_settings, dropout=0):
+    def __init__(self, model_settings, dropout=0.1):
         """ 
         """
         super(TransformerBlock, self).__init__()
@@ -60,7 +60,7 @@ class TransformerBlock(nn.Module):
 
         self.layer_norm_1 = nn.LayerNorm(self.embedding_dim)
         self.attention = nn.MultiheadAttention(self.embedding_dim, self.heads,
-                                          dropout=dropout)
+                                          dropout=dropout, batch_first=True)
         self.layer_norm_2 = nn.LayerNorm(self.embedding_dim)
 
         self.linear = nn.Sequential(
@@ -69,16 +69,13 @@ class TransformerBlock(nn.Module):
             nn.Dropout(dropout),
             nn.Linear(hidden_dim, self.embedding_dim),
             nn.Dropout(dropout))
-        print("test end")
-
 
     def forward(self, x_in):
         x = self.layer_norm_1(x_in)
-        x = self.attention(x, x, x)
-        print(len(x))
+        x = x_in + self.attention(x, x, x)[0]
+        x = x + self.linear(self.layer_norm_2(x))
 
-        return x
-        
+        return x   
 
 
 class VIT(nn.Module):
@@ -96,7 +93,15 @@ class VIT(nn.Module):
         self.patch_embedding = PatchEmbedding(model_settings)
         self.positional_embedding = PositionalEmbedding(self.patch_embedding.num_patches, model_settings)
 
-        self.transformer = TransformerBlock(model_settings)
+        self.transformers = nn.Sequential(*[TransformerBlock(model_settings) for i in range(model_settings["transformer_layers"])])
+
+        self.dropout = nn.Dropout(0.1)
+
+        self.mlp_head = nn.Sequential(
+            nn.LayerNorm(self.embedding_size),
+            nn.Linear(self.embedding_size, 10)
+        )
+
 
 
     def forward(self, x):
@@ -104,8 +109,11 @@ class VIT(nn.Module):
         x = self.patch_embedding(x) 
         pos_embeddings = self.positional_embedding(x) # Also includes extra embeddings for class tokens
         x = x + pos_embeddings
-        print("test begin")
-        print(x.shape)
-        x = self.transformer(x)
+
+        x = self.dropout(x)
+
+        x = self.transformers(x)
+        classification_tokens = x[:,0,:]
+        x = self.mlp_head(classification_tokens)
 
         return x

@@ -37,7 +37,8 @@ def train_VIT(settings):
     if settings["print_debug"]:
         print(summary(VIT(), input_size=(32, 1, 28,28)))
 
-    optimizer = torch.optim.Adam(model.parameters(), lr=settings["learning_rate"], amsgrad=False)
+    optimizer = torch.optim.Adam(model.parameters(), lr=settings["learning_rate"], amsgrad=False, weight_decay=0)
+    loss_function = torch.nn.CrossEntropyLoss()
 
     # Training loop
     train_losses, test_losses = [], []
@@ -47,12 +48,10 @@ def train_VIT(settings):
         
         # Training
         model.train()
-        for batch_i, (x_train, y) in enumerate(dataloader_train):
-            x_train = x_train.to(device)
+        for batch_i, (x_train, y_train) in enumerate(dataloader_train):
+            x_train, y_train = x_train.to(device), y_train.to(device)
             pred = model(x_train)
-            
-            exit()
-            loss = 0
+            loss = loss_function(pred, y_train)
             loss.backward()
             optimizer.step()
             train_losses_epoch.append(loss.item())
@@ -73,15 +72,24 @@ def train_VIT(settings):
         model.eval()
         with torch.no_grad():
             test_losses_epoch = []
+            val_corrects = 0
             for x_test, y_test in dataloader_test:
-                x_test = x_test.to(device)
-                pred = model(x_test)
-                loss = 0
+                x_test, y_test = x_test.to(device), y_test.to(device)
+                output = model(x_test)
+                loss = loss_function(output, y_test)
                 test_losses_epoch.append(loss.item())
 
+                _, val_preds = torch.max(output, 1)
+                val_corrects += torch.sum(val_preds == y_test)
             print(f"Test loss: {sum(test_losses_epoch) / len(test_losses_epoch)}")
             test_losses.append(sum(test_losses_epoch) / len(test_losses_epoch))
+
+            print(f"Test acc: {val_corrects / len(dataloader_test.dataset)}")
+            
             writer.add_scalar("Loss/test", test_losses[-1], epoch)
+            writer.add_scalar("ACC/test", val_corrects / len(dataloader_test.dataset), epoch)
+
+              
 
     # Save trained model to disk
     if settings["save_model"]:
