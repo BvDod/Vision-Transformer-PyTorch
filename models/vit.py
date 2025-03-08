@@ -114,6 +114,7 @@ class VIT(nn.Module):
 
         x = self.transformers(x)
         classification_tokens = x[:,0,:]
+        x = self.dropout(x)
         x = self.mlp_head(classification_tokens)
 
         return x

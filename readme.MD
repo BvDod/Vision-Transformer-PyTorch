@@ -1,6 +1,7 @@
 # Vision transformer (VIT) implementattion in PyTorch
 
-This repository contains my PyTorch implementation of the Vision transformer as was introduced in the paper *"An Image is Worth 16x16 Words: Transformers for Image Recognition at Scale"*
+![alt text](figures/architecture.png)
+This repository contains my PyTorch implementation of the Vision transformer as was introduced in the paper *"An Image is Worth 16x16 Words: Transformers for Image Recognition at Scale"* (source of figure)
 
 The vision transformer works by cutting the original image in patches (eg. 4x4), generating a learned embedding for each patch, adding a positional embedding to each patch embedding, and then using several transformer layers as described in *"Attention Is All You Need". A classification embeddings is also added, which is used in the final layer to output predictions using a single linear layer.
 

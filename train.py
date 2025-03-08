@@ -24,8 +24,8 @@ def train_VIT(settings):
     train, test, input_shape, channels = get_dataset(settings["dataset"], print_stats=True)
     train_var = (train.data /255.0).var()
 
-    dataloader_train = DataLoader(train, batch_size=settings["batch_size"], shuffle=True, drop_last=True, num_workers=0)
-    dataloader_test = DataLoader(test, batch_size=256, num_workers=0)
+    dataloader_train = DataLoader(train, batch_size=settings["batch_size"], shuffle=True, drop_last=True, num_workers=1, pin_memory=True)
+    dataloader_test = DataLoader(test, batch_size=256, num_workers=1, pin_memory=True)
 
     # Setting up model
     model_settings = settings["model_settings"]
@@ -35,10 +35,12 @@ def train_VIT(settings):
 
     model = VIT(model_settings).to(device)
     if settings["print_debug"]:
-        print(summary(VIT(), input_size=(32, 1, 28,28)))
+        print(summary(VIT(), input_size=(256, 1,32,32)))
 
-    optimizer = torch.optim.Adam(model.parameters(), lr=settings["learning_rate"], amsgrad=False, weight_decay=0)
+    optimizer = torch.optim.Adam(model.parameters(), lr=settings["learning_rate"], amsgrad=False, weight_decay=1e-3)
     loss_function = torch.nn.CrossEntropyLoss()
+
+    scaler = torch.amp.GradScaler("cuda" ,enabled=True)
 
     # Training loop
     train_losses, test_losses = [], []
@@ -50,10 +52,13 @@ def train_VIT(settings):
         model.train()
         for batch_i, (x_train, y_train) in enumerate(dataloader_train):
             x_train, y_train = x_train.to(device), y_train.to(device)
-            pred = model(x_train)
-            loss = loss_function(pred, y_train)
-            loss.backward()
-            optimizer.step()
+            with torch.autocast(device_type=device, dtype=torch.float16, enabled=True):
+                pred = model(x_train)
+                loss = loss_function(pred, y_train)
+            scaler.scale(loss).backward()
+            scaler.step(optimizer)
+            scaler.update()
+            
             train_losses_epoch.append(loss.item())
             optimizer.zero_grad()
 
