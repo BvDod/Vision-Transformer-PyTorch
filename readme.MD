@@ -10,6 +10,18 @@ My implementation makes use of a learned positional embedding, and contains the 
 In general the VIT needs a lot more training data than more traditional CNN architectures, and is most often used in combination with rigerous pre-training. This means this implementation is not optimal for the tested datasets, and will also not expected to perform better than more simple CNN models on these datasets. Nevertherless, the used datasets can still be used to demonstrate the correctness of the implementation, and decent validation results should be seen on them.
 
 
+## CIFAR-10
+Classfication on CIFAR-10 (32x32) has been performed using *train_CIFAR10.py* without optimizing any of the hyperparameters or the architecture of the model. Training was performed using 4x4 patcches, and embeddings dim of 256, 8 attention heads and 6 transformer layers. 
+
+After training for 220 epochs, a validation accuracy of 72.9% was seen.
+
+
+## CIFAR
+Classfication on CIFAR has been performed using *train_CIFAR.py* without optimizing any of the hyperparameters or the architecture of the model. Training was performed using 4x4 patcches, and embeddings dim of 256, 8 attention heads and 6 transformer layers. 
+
+After training for 40 epochs, a validation accuracy of 72.9% was seen.
+
+![alt text](figures/CIFAR.png)
 
 ## MNIST
 Classfication on MNIST has been performed using *train_MNIST.py* without optimizing any of the hyperparameters or the architecture of the model. Training was performed using 4x4 patcches, and embeddings dim of 128, 4 attention heads and 5 transformer layers. 
@@ -17,5 +29,3 @@ Classfication on MNIST has been performed using *train_MNIST.py* without optimiz
 After training for 40 epochs, a validation accuracy of 98.9% was seen.
 
 ![alt text](figures/MNIST.png)
-
-
