@@ -15,12 +15,6 @@ Classfication on CIFAR-10 (32x32) has been performed using *train_CIFAR10.py* wi
 
 After training for 220 epochs, a validation accuracy of 72.9% was seen.
 
-
-## CIFAR
-Classfication on CIFAR has been performed using *train_CIFAR.py* without optimizing any of the hyperparameters or the architecture of the model. Training was performed using 4x4 patcches, and embeddings dim of 256, 8 attention heads and 6 transformer layers. 
-
-After training for 40 epochs, a validation accuracy of 72.9% was seen.
-
 ![alt text](figures/CIFAR.png)
 
 ## MNIST
