@@ -1,4 +1,4 @@
-# Vision transformer (VIT) implementattion in PyTorch
+# Vision transformer (VIT): Image Classification <br>(Implementattion in PyTorch)
 
 ![alt text](figures/architecture.png)
 This repository contains my PyTorch implementation of the Vision transformer as was introduced in the paper *"An Image is Worth 16x16 Words: Transformers for Image Recognition at Scale"* (source of figure)
